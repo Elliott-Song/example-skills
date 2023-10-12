@@ -15,7 +15,7 @@ class FurhatAudioFeedRecorder(): FurhatAudioFeedStreamer.AudioStreamingListener 
     var secondsSinceLastSpeech = 0.0
     val sampleRate = FurhatAudioFeedStreamer.audioFormat.sampleRate
     val bytesPerSample = FurhatAudioFeedStreamer.audioFormat.sampleSizeInBits / 8
-    val maxAudioDataSize = (20 * sampleRate * bytesPerSample).toInt() // 20 seconds of audio
+    val maxAudioDataSize = (10 * sampleRate * bytesPerSample).toInt() // 20 seconds of audio
     var circularBuffer = ByteArray(maxAudioDataSize)
     var bufferIndex = 0
 
@@ -27,7 +27,6 @@ class FurhatAudioFeedRecorder(): FurhatAudioFeedStreamer.AudioStreamingListener 
     }
 
     fun startRecording() {
-        FurhatAudioFeedStreamer.logger.info("Starting FurhatAudioFeedRecorder!")
         if (running)
             stop()
         running = true
@@ -36,7 +35,6 @@ class FurhatAudioFeedRecorder(): FurhatAudioFeedStreamer.AudioStreamingListener 
     }
 
     private fun stop() {
-        FurhatAudioFeedStreamer.logger.info("Stopping FurhatAudioFeedRecorder!")
         if (!running)
             return
         running = false
@@ -66,7 +64,7 @@ class FurhatAudioFeedRecorder(): FurhatAudioFeedStreamer.AudioStreamingListener 
                 // check if it is louder than usual to detect speech
                 if (shorttermAverageAmp - longtermAverageAmp > 100) {
                     secondsSinceLastSpeech = 0.0
-                    println("Louder than usual! short: $shorttermAverageAmp, long: $longtermAverageAmp")
+//                    println("Louder than usual! short: $shorttermAverageAmp, long: $longtermAverageAmp")
                 } else {
                     secondsSinceLastSpeech += numSamples / sampleRate
                 }
@@ -78,8 +76,9 @@ class FurhatAudioFeedRecorder(): FurhatAudioFeedStreamer.AudioStreamingListener 
             }
         }
     }
-    fun getSecondsSinceLastSpeech(): Double {
-        return secondsSinceLastSpeech
+
+    fun getMillisSinceLastSpeech(): Int {
+        return (secondsSinceLastSpeech * 1000).toInt()
     }
 
     fun getLast20Seconds(): ByteArray {

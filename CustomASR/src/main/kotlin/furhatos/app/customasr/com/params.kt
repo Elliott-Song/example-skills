@@ -1,7 +1,7 @@
 package furhatos.app.customasr.com
 
 object params {
-    const val endSil = 1000L
+    const val endSil = 2000L
     const val maxSpeech = 15000L
     const val timeout = 5000L
     const val microphoneTimeoutInMillis = 50L

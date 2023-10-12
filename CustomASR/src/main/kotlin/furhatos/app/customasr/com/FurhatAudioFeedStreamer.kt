@@ -45,7 +45,6 @@ object FurhatAudioFeedStreamer {
         }
         running = true
         audioListeners.forEach { it.audioStreamingStarted() }
-        logger.info("Starting FurhatAudioFeedStreamer!")
         runThread = thread(start = true) {
             while (running) {
                 val data = socket!!.recv()
@@ -57,7 +56,6 @@ object FurhatAudioFeedStreamer {
     }
 
     fun stop() {
-        logger.info("Stopping FurhatAudioFeedStreamer!")
         if (running) {
             running = false
             runThread?.join()

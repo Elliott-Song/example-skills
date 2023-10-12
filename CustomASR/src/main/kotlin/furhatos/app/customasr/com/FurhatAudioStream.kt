@@ -1,6 +1,5 @@
 package furhatos.app.customasr.com
 
-import furhatos.app.customasr.RMSResult
 import furhatos.event.EventSystem
 import java.io.InputStream
 import java.nio.ByteBuffer
@@ -43,18 +42,7 @@ class FurhatAudioStream : FurhatAudioFeedStreamer.AudioStreamingListener,
                 buffer.put(audioData[i + 1])
             }
             this.data += buffer.array()
-            calculateAndSendRMS()
         }
-    }
-
-    /**
-     * Calculates the RMS of the sample for usage later.
-     */
-    fun calculateAndSendRMS() {
-        val squaredSum = data.fold(0.0) { acc, byte -> acc + byte * byte }
-        val meanSquared = squaredSum / data.size
-        val rms = sqrt(meanSquared)
-        EventSystem.send(RMSResult(rms))
     }
 
     override fun read(): Int {
