@@ -1,23 +1,21 @@
 package furhatos.app.customasr.extensions
 
-import furhatos.app.customasr.InterimResult
 import furhatos.app.customasr.ListenStarted
-import furhatos.app.customasr.com.FurhatAudioStream
-import furhatos.app.customasr.aws.TranscribeApp
+import furhatos.app.customasr.aws.audioStreamToEvent
 import furhatos.app.customasr.com.params
 import furhatos.app.customasr.nlu.NoSpeechDetected
 import furhatos.event.EventSystem
 import furhatos.flow.kotlin.*
 import furhatos.app.customasr.com.FurhatAudioFeedStreamer
+import furhatos.demo.audiofeed.FurhatAudioFeedRecorder
 import furhatos.util.CommonUtils
-import kotlin.concurrent.thread
 
-private val transcribeApp = TranscribeApp()
-private val furStream = FurhatAudioStream()
+private val recorder = FurhatAudioFeedRecorder()
 
 fun Furhat.enableStartAudioStream() {
     this.audioFeed.enable()
     FurhatAudioFeedStreamer.start(params.ROBOT_IP_ADDRESS)
+    recorder.startRecording()
 }
 
 fun StateBuilder.onUserSilence(trigger: TriggerRunner<*>.(NoSpeechDetected) -> Unit) {
@@ -38,10 +36,7 @@ fun Furhat.customListen(
 ) {
     val lang = this.inputLanguages.first()
     EventSystem.send(ListenStarted())
-    furStream.resetForListen()
-    thread { //Starts a thread returns when done.
-        transcribeApp.startListen(lang, furStream, timeout, endSil, maxSpeech)
-    }
+    audioStreamToEvent(lang, recorder, timeout, endSil, maxSpeech)
     runner.call(listenState(timeout, endSil, maxSpeech))
 }
 
@@ -49,11 +44,6 @@ fun listenState(timeout: Long, endSil: Long, maxSpeech: Long) = state {
     var speechWasRecognized = false
     var lastSpeechTime = -1L
     val logger = CommonUtils.getLogger("ListenState")
-
-    onEvent<InterimResult>(instant = true) { // Got recognized speech
-        speechWasRecognized = true
-        lastSpeechTime = System.currentTimeMillis()
-    }
 
     /**
      * Checks how long ago the last speech was recognized, ends the stream if its longer than the endSil param.
@@ -64,7 +54,7 @@ fun listenState(timeout: Long, endSil: Long, maxSpeech: Long) = state {
             System.currentTimeMillis() - lastSpeechTime > endSil
         ) {
             logger.info("endSil for listen reached.")
-            furStream.active = false
+            recorder.audioStreamingStopped()
         }
     }
 
@@ -73,7 +63,7 @@ fun listenState(timeout: Long, endSil: Long, maxSpeech: Long) = state {
      */
     onTime(delay = timeout.toInt(), instant = true, cond = { !speechWasRecognized} ) {
         logger.info("timeout for listen reached.")
-        furStream.active = false
+        recorder.startRecording()
     }
 
     /**
@@ -81,11 +71,11 @@ fun listenState(timeout: Long, endSil: Long, maxSpeech: Long) = state {
      */
     onTime(delay = maxSpeech.toInt(), instant = true) {
         logger.info("maxSpeech for listen reached.")
-        furStream.active = false
+        recorder.startRecording()
     }
 
     onExit {
         logger.info("Exiting listen state")
-        furStream.active = false
+        recorder.startRecording()
     }
 }

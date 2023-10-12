@@ -3,6 +3,7 @@ package furhatos.app.customasr.com
 import furhatos.util.CommonUtils
 import org.zeromq.SocketType
 import org.zeromq.ZMQ
+import javax.sound.sampled.AudioFormat
 import kotlin.concurrent.thread
 
 /**
@@ -15,6 +16,7 @@ object FurhatAudioFeedStreamer {
     var running = false
         private set
     var runThread: Thread? = null
+    val audioFormat = AudioFormat(16000F, 16, 2, true, false)
     val audioListeners = mutableListOf<AudioStreamingListener>()
     var ipaddr = ""
 
@@ -55,6 +57,7 @@ object FurhatAudioFeedStreamer {
     }
 
     fun stop() {
+        logger.info("Stopping FurhatAudioFeedStreamer!")
         if (running) {
             running = false
             runThread?.join()

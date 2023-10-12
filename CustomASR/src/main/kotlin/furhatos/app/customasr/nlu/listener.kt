@@ -1,9 +1,7 @@
 package furhatos.app.customasr.nlu
 
-import furhatos.app.customasr.InterimResult
 import furhatos.app.customasr.ListenDone
 import furhatos.app.customasr.ListenStarted
-import furhatos.app.customasr.RMSResult
 import furhatos.event.EventSystem
 import furhatos.flow.kotlin.state
 import furhatos.util.CommonUtils
@@ -24,22 +22,13 @@ val ListenState = state {
         rms = 0.0
     }
 
-    onEvent<RMSResult> {
-        rms = it.rms
-    }
-
-    onEvent<InterimResult>(instant = true) {
-        if (!it.isPartial) {
-            fullText += "${it.interimText} "
-        } else {
-            logger.info("INTERIM: ${it.interimText}")
-        }
-    }
-
     onEvent<ListenDone>(instant = true, cond = {!listenEnded}) {
+        fullText = it.finalText
         listenEnded = true
-        logger.info("Listen done")
         var eventSend = false
+        logger.info("Listen done")
+        logger.info(fullText)
+
         if (fullText.isEmpty()) {
             EventSystem.send(NoSpeechDetected())
         } else {

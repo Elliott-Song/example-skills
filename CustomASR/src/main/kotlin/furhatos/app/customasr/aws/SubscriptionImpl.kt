@@ -26,6 +26,7 @@ class SubscriptionImpl internal constructor(
 
 
     override fun request(n: Long) {
+        // this function is called by the subscriber to signal that it wants more data
         if (n <= 0) {
             subscriber.onError(IllegalArgumentException("Demand must be positive"))
         }
