@@ -1,6 +1,5 @@
 package furhatos.app.customasr.audiofeed
 
-import furhatos.util.CommonUtils
 import org.zeromq.SocketType
 import org.zeromq.ZMQ
 import javax.sound.sampled.AudioFormat
@@ -11,8 +10,6 @@ import kotlin.concurrent.thread
  * (Make sure to enable the Audio Feed under "External Feeds" in the web console.)
  */
 object FurhatAudioFeedStreamer {
-
-    val logger = CommonUtils.getLogger(FurhatAudioFeedStreamer::class.java)
     val context: ZMQ.Context = ZMQ.context(1)
     var running = false
         private set

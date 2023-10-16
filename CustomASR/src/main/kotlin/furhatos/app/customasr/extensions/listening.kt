@@ -8,7 +8,6 @@ import furhatos.event.EventSystem
 import furhatos.flow.kotlin.*
 import furhatos.app.customasr.audiofeed.FurhatAudioFeedStreamer
 import furhatos.demo.audiofeed.FurhatAudioFeedRecorder
-import furhatos.util.CommonUtils
 
 private val recorder = FurhatAudioFeedRecorder()
 
