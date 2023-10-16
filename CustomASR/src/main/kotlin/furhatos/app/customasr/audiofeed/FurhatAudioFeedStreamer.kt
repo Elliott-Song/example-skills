@@ -1,4 +1,4 @@
-package furhatos.app.customasr.com
+package furhatos.app.customasr.audiofeed
 
 import furhatos.util.CommonUtils
 import org.zeromq.SocketType
@@ -8,6 +8,7 @@ import kotlin.concurrent.thread
 
 /**
  * Sends data from the audioFeed to all registered listeners.
+ * (Make sure to enable the Audio Feed under "External Feeds" in the web console.)
  */
 object FurhatAudioFeedStreamer {
 

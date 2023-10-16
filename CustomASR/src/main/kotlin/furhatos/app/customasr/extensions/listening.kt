@@ -1,12 +1,12 @@
 package furhatos.app.customasr.extensions
 
 import furhatos.app.customasr.ListenStarted
-import furhatos.app.customasr.aws.audioStreamToEvent
-import furhatos.app.customasr.com.params
+import furhatos.app.customasr.audiofeed.audioStreamToEvent
+import furhatos.app.customasr.params
 import furhatos.app.customasr.nlu.NoSpeechDetected
 import furhatos.event.EventSystem
 import furhatos.flow.kotlin.*
-import furhatos.app.customasr.com.FurhatAudioFeedStreamer
+import furhatos.app.customasr.audiofeed.FurhatAudioFeedStreamer
 import furhatos.demo.audiofeed.FurhatAudioFeedRecorder
 import furhatos.util.CommonUtils
 
@@ -30,10 +30,11 @@ fun Furhat.customAsk(text: String) {
 }
 
 fun Furhat.customListen(
-    timeout: Long = params.timeout,
-    endSil: Long = params.endSil,
-    maxSpeech: Long = params.maxSpeech
+        timeout: Long = params.timeout,
+        endSil: Long = params.endSil,
+        maxSpeech: Long = params.maxSpeech,
 ) {
+    recorder.startRecording()
     val lang = this.inputLanguages.first()
     EventSystem.send(ListenStarted())
     audioStreamToEvent(lang, recorder, timeout, endSil, maxSpeech)

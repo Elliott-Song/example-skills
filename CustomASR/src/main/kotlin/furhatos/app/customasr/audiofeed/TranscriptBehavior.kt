@@ -1,10 +1,9 @@
-package furhatos.app.customasr.aws
+package furhatos.app.customasr.audiofeed
 
 import aws.sdk.kotlin.services.sagemakerruntime.SageMakerRuntimeClient
 import aws.sdk.kotlin.services.sagemakerruntime.model.InvokeEndpointRequest
 import com.google.gson.Gson
 import furhatos.app.customasr.ListenDone
-import furhatos.app.customasr.com.FurhatAudioFeedStreamer
 import furhatos.demo.audiofeed.FurhatAudioFeedRecorder
 import furhatos.util.Language
 import furhatos.event.EventSystem
@@ -37,6 +36,7 @@ fun audioStreamToEvent(
         }
         millisSinceLastSpeech = recorder.getMillisSinceLastSpeech()
     }
+    Thread.sleep(1000)
 
     // Waiting for silence
     while(millisSinceLastSpeech < endSil && System.currentTimeMillis() - startTime < maxSpeech) {

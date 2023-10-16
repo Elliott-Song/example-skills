@@ -1,11 +1,10 @@
 package furhatos.demo.audiofeed
 
-import furhatos.app.customasr.com.FurhatAudioFeedStreamer
-import furhatos.demo.utils.WavFileWriter
+import furhatos.app.customasr.audiofeed.FurhatAudioFeedStreamer
 import furhatos.demo.utils.removeRightChannel
 import java.io.ByteArrayOutputStream
-import java.io.File
 import kotlin.math.abs
+import kotlin.math.min
 
 class FurhatAudioFeedRecorder(): FurhatAudioFeedStreamer.AudioStreamingListener {
     private var recordUser: Boolean = false
@@ -32,6 +31,7 @@ class FurhatAudioFeedRecorder(): FurhatAudioFeedStreamer.AudioStreamingListener 
         running = true
         recordUser = true
         circularBuffer = ByteArray(maxAudioDataSize)
+        secondsSinceLastSpeech = min(secondsSinceLastSpeech, 1.0)
     }
 
     private fun stop() {
@@ -62,7 +62,7 @@ class FurhatAudioFeedRecorder(): FurhatAudioFeedStreamer.AudioStreamingListener 
                 longtermAverageAmp = (longtermAverageAmp * 0.95 + averageAmp * 0.05).toInt()
 
                 // check if it is louder than usual to detect speech
-                if (shorttermAverageAmp - longtermAverageAmp > 100) {
+                if (shorttermAverageAmp - longtermAverageAmp > 200) {
                     secondsSinceLastSpeech = 0.0
 //                    println("Louder than usual! short: $shorttermAverageAmp, long: $longtermAverageAmp")
                 } else {

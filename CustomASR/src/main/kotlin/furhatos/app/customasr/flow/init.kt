@@ -4,16 +4,16 @@ import furhatos.app.customasr.extensions.customListen
 import furhatos.app.customasr.extensions.enableStartAudioStream
 import furhatos.app.customasr.extensions.onUserSilence
 import furhatos.app.customasr.nlu.*
-import furhatos.flow.kotlin.State
-import furhatos.flow.kotlin.furhat
-import furhatos.flow.kotlin.state
+import furhatos.flow.kotlin.*
 
 /**
  * The state shows how a CustomASR could be used with custom extension functions.
- *  Listens to Intents (yes, no), or a generic response [TextAndMetrics]
+ *  Listens using [customListenDone]
  *  When no speech is recognized, the [onUserSilence] is triggered.
  */
 val Basic: State = state {
+    include(customListening)
+
     init {
         furhat.enableStartAudioStream() // Start the stream and listener
         parallel(ListenState, false) // Start the state in charge of Listening and NLU.
@@ -24,22 +24,15 @@ val Basic: State = state {
         furhat.customListen()
     }
 
-    onEvent<Yes> {
-        furhat.say("Yes!")
+    onResponse<HowDoIWork> {
+        furhat.say("I work by listening to your voice and trying to understand what you say.")
     }
-
-    onEvent<No> {
-        if (it.loudness > 54.0) {
-            furhat.say("LOUD no!")
-        } else {
-            furhat.say("Silent no")
-        }
+    onResponse<WhatCanIAsk> {
+        furhat.say("You can ask me anything you want.")
     }
-
-    onEvent<TextAndMetrics> {
-        furhat.say(it.text)
+    onResponse {
+        furhat.say("I don't know what you said.")
     }
-
     onUserSilence {
         furhat.say("You said nothing!")
     }
