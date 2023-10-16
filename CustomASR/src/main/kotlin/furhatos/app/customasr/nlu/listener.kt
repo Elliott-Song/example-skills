@@ -8,11 +8,11 @@ import furhatos.util.CommonUtils
 
 private val logger = CommonUtils.getLogger("ASR-EventListener")
 /**
- * Listens to event send by the [furhatos.app.customasr.audiofeed.TranscriptBehaviorKt.audioStreamToEvent]
+ * Listens to event send by the [furhatos.app.customasr.audiofeed.audioStreamToEvent]
  */
 
 val ListenState = state {
-    var fullText = ""
+    var fullText: String
     var listenEnded = false
 
     onEvent<ListenStarted>(instant = true) {

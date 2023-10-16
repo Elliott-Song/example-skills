@@ -15,10 +15,9 @@ import javax.sound.sampled.AudioFileFormat
 import javax.sound.sampled.AudioInputStream
 import javax.sound.sampled.AudioSystem
 
-private val logger = CommonUtils.getLogger("TranscriptResponseHandler")
 
 fun audioStreamToEvent(
-        lang: Language, recorder: FurhatAudioFeedRecorder,
+        recorder: FurhatAudioFeedRecorder,
         timeout: Long, endSil: Long, maxSpeech: Long
 ) {
     // We essentially have two steps: waiting for speech, and then waiting for silence
