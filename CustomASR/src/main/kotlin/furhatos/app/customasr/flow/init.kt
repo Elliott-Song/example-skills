@@ -1,8 +1,7 @@
 package furhatos.app.customasr.flow
 
-import furhatos.app.customasr.extensions.customListen
-import furhatos.app.customasr.extensions.enableStartAudioStream
-import furhatos.app.customasr.extensions.onUserSilence
+import furhatos.app.customasr.customListenDone
+import furhatos.app.customasr.extensions.*
 import furhatos.app.customasr.nlu.*
 import furhatos.flow.kotlin.*
 
@@ -16,7 +15,7 @@ val Basic: State = state {
 
     init {
         furhat.enableStartAudioStream() // Start the stream and listener
-        parallel(ListenState, false) // Start the state in charge of Listening and NLU.
+        parallel(ParallelListenState, false) // Start the state in charge of Listening and NLU.
     }
 
     onButton("Ask") {
@@ -32,6 +31,13 @@ val Basic: State = state {
     }
     onResponse {
         furhat.say("I don't know what you said.")
+        // for testing customAskYN
+        val cont = furhat.customAskYN("Can you say yes or no?")
+        if (cont) {
+            furhat.say("Ok, you said yes!")
+        } else {
+            furhat.say("Ok, you said no!")
+        }
     }
     onUserSilence {
         furhat.say("You said nothing!")

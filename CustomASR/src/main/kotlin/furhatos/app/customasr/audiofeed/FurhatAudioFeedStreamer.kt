@@ -20,7 +20,7 @@ object FurhatAudioFeedStreamer {
 
     interface AudioStreamingListener {
 
-        fun audioStreamingStopped()
+        fun stopRecording()
         fun audioStreamingStarted()
         fun audioStreamingData(data: ByteArray)
     }
@@ -58,7 +58,7 @@ object FurhatAudioFeedStreamer {
             running = false
             runThread?.join()
             runThread = null
-            audioListeners.forEach { it.audioStreamingStopped() }
+            audioListeners.forEach { it.stopRecording() }
         }
     }
 }

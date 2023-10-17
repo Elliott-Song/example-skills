@@ -4,14 +4,6 @@ import furhatos.event.Event
 import furhatos.nlu.Intent
 import furhatos.util.Language
 
-/**
- * Base Intent event
- */
-open class customListenDone(
-    val text: String
-) : Event()
-open class NoSpeechDetected: Event() // No Speech
-
 class HowDoIWork : Intent() {
     override fun getConfidenceThreshold(): Double {
         return 0.8
