@@ -7,7 +7,9 @@ import furhatos.util.Language
 
 val customListening = partialState {
     onEvent<customListenDone> { it -> // needed to be able to use the customASR
+        furhat.say("You said: ${it.text}")
         val results = thisState.getIntentClassifier(lang = Language.ENGLISH_US).classify(it.text)
+        println("Heard: ${it.text}")
         results.forEach {
             println("Intent: ${it.intents} - Confidence: ${it.conf}")
         }

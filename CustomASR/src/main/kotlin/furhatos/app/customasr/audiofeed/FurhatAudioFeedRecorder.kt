@@ -7,7 +7,7 @@ import furhatos.app.customasr.InterimResult
 import furhatos.app.customasr.audiofeed.FurhatAudioFeedStreamer
 import furhatos.demo.utils.removeRightChannel
 import furhatos.event.EventSystem
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 import java.io.ByteArrayOutputStream
 import javax.sound.sampled.AudioFileFormat
 import javax.sound.sampled.AudioInputStream
@@ -21,14 +21,17 @@ import kotlin.math.min
 class FurhatAudioFeedRecorder(): FurhatAudioFeedStreamer.AudioStreamingListener {
     private var recordUser: Boolean = false
 
-    var longtermAverageAmp = 0
-    var shorttermAverageAmp = 0
-    var secondsSinceLastSpeech = 0.0
-    val sampleRate = FurhatAudioFeedStreamer.audioFormat.sampleRate
-    val bytesPerSample = FurhatAudioFeedStreamer.audioFormat.sampleSizeInBits / 8
-    val maxAudioDataSize = (10 * sampleRate * bytesPerSample).toInt() // 20 seconds of audio
-    var circularBuffer = ByteArray(maxAudioDataSize)
-    var bufferIndex = 0
+    private var longtermAverageAmp = 0
+    private var shorttermAverageAmp = 0
+    private var secondsSinceLastSpeech = 0.0
+    private val sampleRate = FurhatAudioFeedStreamer.audioFormat.sampleRate
+    private val bytesPerSample = FurhatAudioFeedStreamer.audioFormat.sampleSizeInBits / 8
+    private val maxAudioDataSize = (10 * sampleRate * bytesPerSample).toInt() // 20 seconds of audio
+    private var circularBuffer = ByteArray(maxAudioDataSize)
+    private var bufferIndex = 0
+    private var latestTranscriptionJob: Deferred<String> = GlobalScope.async { "" }
+    private var latestTranscription = ""
+    private var latestTranscriptionTime = 0L
 
     var running = false
         private set
@@ -53,6 +56,7 @@ class FurhatAudioFeedRecorder(): FurhatAudioFeedStreamer.AudioStreamingListener 
         recordUser = false
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     override fun audioStreamingData(data: ByteArray) {
         if (running) {
             // Write user only (audio in) when asked (function startRecordSeparate())
@@ -86,8 +90,17 @@ class FurhatAudioFeedRecorder(): FurhatAudioFeedStreamer.AudioStreamingListener 
                 val bytesForEnd = (maxAudioDataSize - bufferIndex).coerceAtMost(dataLength)
                 System.arraycopy(audioInData, 0, circularBuffer, bufferIndex, bytesForEnd)
                 bufferIndex = (bufferIndex + bytesForEnd) % maxAudioDataSize
+                if (latestTranscriptionJob.isCompleted) {
+                    latestTranscription = latestTranscriptionJob.getCompleted()
+                    latestTranscriptionJob =  getTranscriptionAsync()
+                    latestTranscriptionTime = System.currentTimeMillis()
+                }
             }
         }
+    }
+
+    private fun getTranscriptionAsync(): Deferred<String> = GlobalScope.async {
+        return@async getTranscription()
     }
 
     fun getLast20Seconds(): ByteArray {
@@ -125,6 +138,18 @@ class FurhatAudioFeedRecorder(): FurhatAudioFeedStreamer.AudioStreamingListener 
             val text = map["text"].toString()
             println("Transcribed: $text")
             return text
+        }
+    }
+
+    fun getLatestTranscription(): String {
+        return if (System.currentTimeMillis() - latestTranscriptionTime < 500) {
+            latestTranscription
+        } else {
+            var transcription = ""
+            runBlocking {
+                transcription = latestTranscriptionJob.await()
+            }
+            transcription
         }
     }
 

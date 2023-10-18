@@ -30,14 +30,14 @@ val Basic: State = state {
         furhat.say("You can ask me anything you want.")
     }
     onResponse {
-        furhat.say("I don't know what you said.")
+        furhat.customListen()
         // for testing customAskYN
-        val cont = furhat.customAskYN("Can you say yes or no?")
-        if (cont) {
-            furhat.say("Ok, you said yes!")
-        } else {
-            furhat.say("Ok, you said no!")
-        }
+//        val cont = furhat.customAskYN("Can you say yes or no?")
+//        if (cont) {
+//            furhat.say("Ok, you said yes!")
+//        } else {
+//            furhat.say("Ok, you said no!")
+//        }
     }
     onUserSilence {
         furhat.say("You said nothing!")

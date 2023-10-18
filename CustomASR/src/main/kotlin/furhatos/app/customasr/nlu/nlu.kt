@@ -1,6 +1,5 @@
 package furhatos.app.customasr.nlu
 
-import furhatos.event.Event
 import furhatos.nlu.Intent
 import furhatos.util.Language
 

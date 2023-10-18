@@ -2,15 +2,13 @@ package furhatos.app.customasr
 
 import furhatos.event.Event
 
-/**
- * Events send by [TranscriptBehavior]
- */
-open class ListenDone(val finalText: String): Event()
-open class ListenStarted: Event()
 
-/**
- * Base Intent event
- */
+open class ListenStarted(
+        val timeout: Long,
+        val endSil: Long,
+        val maxSpeech: Long
+): Event()
+
 open class customListenDone(
         val text: String
 ) : Event()

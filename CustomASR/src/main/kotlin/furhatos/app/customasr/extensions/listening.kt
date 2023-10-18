@@ -6,17 +6,16 @@ import furhatos.flow.kotlin.*
 import furhatos.app.customasr.audiofeed.FurhatAudioFeedStreamer
 import furhatos.app.customasr.flow.customListening
 import furhatos.demo.audiofeed.FurhatAudioFeedRecorder
+import furhatos.event.Event
 import furhatos.nlu.common.*
 import furhatos.util.CommonUtils
 
 private val recorder = FurhatAudioFeedRecorder()
-private val logger = CommonUtils.getLogger("listening-logger")
 
 // Attemps to forcefully enable the audio feed on the Furhat and starts receiving the published stream.
 fun Furhat.enableStartAudioStream() {
     this.audioFeed.enable()
     FurhatAudioFeedStreamer.start(params.ROBOT_IP_ADDRESS)
-    recorder.startRecording()
 }
 
 fun Furhat.customAsk(text: String) {
@@ -29,7 +28,7 @@ fun Furhat.customListen(
         maxSpeech: Long = params.maxSpeech,
 ) {
     recorder.startRecording()
-    EventSystem.send(ListenStarted())
+    EventSystem.send(ListenStarted(timeout, endSil, maxSpeech))
 }
 
 // Forwards NoSpeechDetected to the standard UserSilence
@@ -42,13 +41,14 @@ fun StateBuilder.onUserSilence(trigger: TriggerRunner<*>.(NoSpeechDetected) -> U
 // Handles listening on a separate thread to the main flow
 val ParallelListenState = state {
     onEvent<ListenStarted>(instant = true) {
-        call(waitForTranscription(params.timeout, params.endSil, params.maxSpeech))
+        call(waitForTranscription(it.timeout, it.endSil, it.maxSpeech))
     }
 }
 fun waitForTranscription(timeout: Long, endSil: Long, maxSpeech: Long) = state {
     var speechWasRecognized = false
     var lastSpeechTime = -1L
     val logger = CommonUtils.getLogger("ListenState")
+    var resultingEvent: Event = NoSpeechDetected()
 
     onEvent<InterimResult>(instant = true) { // Got recognized speech
         speechWasRecognized = true
@@ -63,14 +63,11 @@ fun waitForTranscription(timeout: Long, endSil: Long, maxSpeech: Long) = state {
                 lastSpeechTime != -1L &&
                 System.currentTimeMillis() - lastSpeechTime > endSil
         ) {
-            println("start ${System.currentTimeMillis() - lastSpeechTime}")
             speechWasRecognized = false
             logger.info("endSil for listen reached.")
-            println("recording ${System.currentTimeMillis() - lastSpeechTime}")
             recorder.stopRecording()
-            println("transcribing ${System.currentTimeMillis() - lastSpeechTime}")
-            EventSystem.send(customListenDone(recorder.getTranscription()))
-            println("done ${System.currentTimeMillis() - lastSpeechTime}")
+            Thread.sleep(400)
+            resultingEvent = customListenDone(recorder.getLatestTranscription())
             terminate()
         }
     }
@@ -81,7 +78,6 @@ fun waitForTranscription(timeout: Long, endSil: Long, maxSpeech: Long) = state {
     onTime(delay = timeout.toInt(), instant = true, cond = { !speechWasRecognized} ) {
         logger.info("timeout for listen reached.")
         recorder.stopRecording()
-        EventSystem.send(NoSpeechDetected())
         terminate()
     }
 
@@ -91,11 +87,12 @@ fun waitForTranscription(timeout: Long, endSil: Long, maxSpeech: Long) = state {
     onTime(delay = maxSpeech.toInt(), instant = true) {
         logger.info("maxSpeech for listen reached.")
         recorder.stopRecording()
-        EventSystem.send(customListenDone(recorder.getTranscription()))
+        resultingEvent = customListenDone(recorder.getLatestTranscription())
         terminate()
     }
 
     onExit {
+        EventSystem.send(resultingEvent)
         logger.info("Exiting listen state from ${getAllRunners()}")
     }
 }
